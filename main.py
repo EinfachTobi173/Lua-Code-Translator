@@ -3,8 +3,8 @@ from tkinter import filedialog, messagebox, ttk
 import re
 import translate
 
-def translate_lua_code(lua_code):
-    translator = translate.Translator(to_lang="de")
+def translate_lua_code(lua_code, source_language, target_language):
+    translator = translate.Translator(to_lang=target_language)
     pattern = r"'(.*?)'"  # match single-quoted strings
     matches = re.findall(pattern, lua_code)
     for match in matches:
@@ -21,7 +21,9 @@ def translate_and_save():
         messagebox.showinfo("Übersetzung startet", "Die Übersetzung wird gestartet. Bitte warten Sie...")
         with open(file_path, "r", encoding="utf-8") as file:
             lua_code = file.read()
-        translated_code = translate_lua_code(lua_code)
+        source_language = source_language_var.get()
+        target_language = target_language_var.get()
+        translated_code = translate_lua_code(lua_code, source_language, target_language)
         translated_file_path = file_path + ".übersetzt"
         with open(translated_file_path, "w", encoding="utf-8") as file:
             file.write(translated_code)
@@ -39,7 +41,7 @@ def open_file():
         text_area.delete(1.0, tk.END)
         with open(file_path, "r", encoding="utf-8") as file:
             lua_code = file.read()
-            text_area.insert(tk.INSERT, lua_code)
+        text_area.insert(tk.INSERT, lua_code)
 
 def save_file():
     file_path = filedialog.asksaveasfilename(title="Lua Datei speichern", filetypes=[("Lua files", "*.lua")])
@@ -54,28 +56,45 @@ def about():
 
 root = tk.Tk()
 root.title("Lua Code Translator")
+root.configure(background='#333333')  # dark gray background
 
-menu = tk.Menu(root)
+menu = tk.Menu(root, background='#333333', foreground='#f7f7f7')
 root.config(menu=menu)
 
-file_menu = tk.Menu(menu)
-menu.add_cascade(label="Datei", menu=file_menu)
-file_menu.add_command(label="Öffnen", command=open_file)
-file_menu.add_command(label="Speichern", command=save_file)
-file_menu.add_command(label="Übersetzen und Speichern", command=translate_and_save)
-file_menu.add_separator()
-file_menu.add_command(label="Info", command=about)
+file_menu = tk.Menu(menu, background='#333333', foreground='#f7f7f7')
+menu.add_cascade(label="Datei", menu=file_menu, background='#333333', foreground='#f7f7f7')
+file_menu.add_command(label="Öffnen", command=open_file, background='#333333', foreground='#f7f7f7')
+file_menu.add_command(label="Speichern", command=save_file, background='#333333', foreground='#f7f7f7')
+file_menu.add_command(label="Übersetzen und Speichern", command=translate_and_save, background='#333333', foreground='#f7f7f7')
+file_menu.add_separator(background='#333333')
+file_menu.add_command(label="Info", command=about, background='#333333', foreground='#f7f7f7')
 
-translate_button = tk.Button(root, text="Übersetzen und Speichern", command=translate_and_save)
+font = ("Open Sans", 12)
+
+source_language_var = tk.StringVar()
+source_language_var.set("en")  # default source language
+source_language_label = tk.Label(root, text="Quellsprache:", font=font, background='#333333', foreground='#f7f7f7')
+source_language_label.pack(pady=10)
+source_language_option = ttk.OptionMenu(root, source_language_var, "en", "en", "es", "ru", "fr", "de")
+source_language_option.pack(pady=10)
+
+target_language_var = tk.StringVar()
+target_language_var.set("de")  # default target language
+target_language_label = tk.Label(root, text="Zielsprache:", font=font, background='#333333', foreground='#f7f7f7')
+target_language_label.pack(pady=10)
+target_language_option = ttk.OptionMenu(root, target_language_var, "de", "en", "es", "ru", "fr", "de")
+target_language_option.pack(pady=10)
+
+translate_button = ttk.Button(root, text="Übersetzen und Speichern", command=translate_and_save)
 translate_button.pack(pady=20)
 
 progress_bar = ttk.Progressbar(root, orient="horizontal", length=200, mode="determinate")
 progress_bar.pack(pady=10)
 
-progress_label = tk.Label(root, text="")
+progress_label = tk.Label(root, text="", font=font, background='#333333', foreground='#f7f7f7')
 progress_label.pack(pady=10)
 
-text_area = tk.Text(root, width=80, height=20)
+text_area = tk.Text(root, width=80, height=20, font=font, background='#333333', foreground='#f7f7f7')
 text_area.pack(pady=20)
 
 root.mainloop()
