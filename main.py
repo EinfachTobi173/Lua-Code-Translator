@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import re
 import translate
+import threading
 
 def translate_lua_code(lua_code, source_language, target_language):
     translator = translate.Translator(to_lang=target_language)
@@ -19,21 +20,25 @@ def translate_and_save():
         progress_bar.start()
         progress_label.config(text="Übersetzung startet...")
         messagebox.showinfo("Übersetzung startet", "Die Übersetzung wird gestartet. Bitte warten Sie...")
-        with open(file_path, "r", encoding="utf-8") as file:
-            lua_code = file.read()
-        source_language = source_language_var.get()
-        target_language = target_language_var.get()
-        translated_code = translate_lua_code(lua_code, source_language, target_language)
-        translated_file_path = file_path + ".übersetzt"
-        with open(translated_file_path, "w", encoding="utf-8") as file:
-            file.write(translated_code)
-        progress_bar.stop()
-        progress_bar.config(mode="determinate")
-        progress_bar.config(value=100)
-        progress_label.config(text="Übersetzung abgeschlossen!")
-        messagebox.showinfo("Übersetzung abgeschlossen", f"Übersetzte Datei gespeichert als {translated_file_path}")
-        text_area.delete(1.0, tk.END)
-        text_area.insert(tk.INSERT, translated_code)
+        
+        def translate_thread():
+            with open(file_path, "r", encoding="utf-8") as file:
+                lua_code = file.read()
+            source_language = source_language_var.get()
+            target_language = target_language_var.get()
+            translated_code = translate_lua_code(lua_code, source_language, target_language)
+            translated_file_path = file_path + ".übersetzt"
+            with open(translated_file_path, "w", encoding="utf-8") as file:
+                file.write(translated_code)
+            progress_bar.stop()
+            progress_bar.config(mode="determinate")
+            progress_bar.config(value=100)
+            progress_label.config(text="Übersetzung abgeschlossen!")
+            messagebox.showinfo("Übersetzung abgeschlossen", f"Übersetzte Datei gespeichert als {translated_file_path}")
+            text_area.delete(1.0, tk.END)
+            text_area.insert(tk.INSERT, translated_code)
+        
+        threading.Thread(target=translate_thread).start()
 
 def open_file():
     file_path = filedialog.askopenfilename(title="Lua Datei auswählen", filetypes=[("Lua files", "*.lua")])
@@ -80,7 +85,7 @@ source_language_option.pack(pady=10)
 
 target_language_var = tk.StringVar()
 target_language_var.set("de")  # default target language
-target_language_label = tk.Label(root, text="Zielsprache:", font=font, background='#333333', foreground='#f7f7f7')
+target_language_label = tk.Label(root, text="Zielsprache:", font=font,background='#333333', foreground='#f7f7f7')
 target_language_label.pack(pady=10)
 target_language_option = ttk.OptionMenu(root, target_language_var, "de", "en", "es", "ru", "fr", "de")
 target_language_option.pack(pady=10)
